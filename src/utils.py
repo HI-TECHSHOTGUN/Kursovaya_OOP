@@ -3,10 +3,8 @@ from src.savers import JSONSaver
 from src.vacancy import Vacancy
 
 
-def user_interaction():
-    """
-    Функция для взаимодействия с пользователем через консоль.
-    """
+def user_interaction() -> None:
+    """Функция для взаимодействия с пользователем через консоль."""
     hh_api = HeadHunterAPI()
     json_saver = JSONSaver()
 
