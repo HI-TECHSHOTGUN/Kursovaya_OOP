@@ -18,31 +18,33 @@ class API(ABC):
         pass
 
 
-class HeadHunterAPI(API):
-    """Класс для работы с HH при помощи API"""
+class HeadHunterAPI:
+    """Класс для работы с API hh.ru."""
+    __URL = "https://api.hh.ru/"
 
-    __URL = "https://api.hh.ru/vacancies"
+    def get_employers(self, employer_ids: List[str]) -> List[Dict[str, Any]]:
+        """Получает данные о работодателях по их ID."""
+        employers_data = []
+        for employer_id in employer_ids:
+            try:
+                response = requests.get(f"{self.__URL}employers/{employer_id}")
+                response.raise_for_status()
+                employers_data.append(response.json())
+            except requests.RequestException as e:
+                print(f"Ошибка при запросе данных о компании {employer_id}: {e}")
+        return employers_data
 
-    def __init__(self) -> None:
-        """Инициализирует объект и проверяет соединение с API."""
-        self._connect()
-
-    def _connect(self) -> None:
-        """Приватный метод для проверки доступности API."""
+    def get_vacancies_by_employer(self, employer_id: str) -> List[Dict[str, Any]]:
+        """Получает вакансии для конкретного работодателя."""
+        params = {
+            'employer_id': employer_id,
+            'area': 113,  # Россия
+            'per_page': 100,
+        }
         try:
-            response = requests.get(self.__URL, timeout=5)
+            response = requests.get(f"{self.__URL}vacancies", params=params)
             response.raise_for_status()
+            return response.json()['items']
         except requests.RequestException as e:
-            raise ConnectionError(f"Не удалось подключиться к API hh.ru: {e}")
-
-    def get_vacancies(self, search_query: str) -> List[Dict[str, Any]]:
-        """Получает список вакансий с hh.ru по заданному поисковому запросу."""
-        params = {"text": search_query, "area": 113, "per_page": 100, "only_with_salary": True}  # Поиск по России
-
-        try:
-            response = requests.get(self.__URL, params=params)
-            response.raise_for_status()
-            return response.json()["items"]
-        except requests.RequestException as e:
-            print(f"Ошибка API запроса {e}")
+            print(f"Ошибка при запросе вакансий для компании {employer_id}: {e}")
             return []
